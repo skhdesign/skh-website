@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+  <rect width="1600" height="1050" fill="#d9d8d2"/>
+  <path d="M0 760 L420 390 L720 620 L1020 300 L1600 780 V1050 H0Z" fill="#c4c2ba"/>
+  <rect x="535" y="430" width="530" height="340" fill="#b0aea6"/>
+  <rect x="610" y="505" width="110" height="175" fill="#e8e7e2"/>
+  <rect x="790" y="505" width="185" height="90" fill="#e8e7e2"/>
+  <text x="800" y="900" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" letter-spacing="7" fill="#55534d">PROJECT IMAGE</text>
+</svg>
