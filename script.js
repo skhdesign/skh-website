@@ -66,13 +66,6 @@ if (navbar) {
   });
 }
 
-if (btn && nav) {
-  btn.addEventListener('click', () => nav.classList.toggle('open'));
-  nav.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => nav.classList.remove('open'));
-  });
-}
-
 function getSlideImageUrls() {
   return slides
     .map(slide => slide.querySelector('.slide-image'))
@@ -322,8 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
 // =========================
-// V23 手機右側滑出選單
+// V24 手機右側滑出選單（修正版）
 // =========================
 document.addEventListener("DOMContentLoaded", () => {
   const menuToggle = document.getElementById("menuToggle");
@@ -332,30 +326,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!menuToggle || !navLinks || !menuOverlay) return;
 
+  const closeMenu = () => {
+    // 同時清除新版與舊版 class，避免 Safari 返回頁面時保留開啟狀態
+    navLinks.classList.remove("is-open", "open");
+    menuOverlay.classList.remove("is-open");
+    menuToggle.classList.remove("is-open");
+    document.body.classList.remove("menu-open");
+
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "開啟選單");
+    menuOverlay.setAttribute("aria-hidden", "true");
+  };
+
   const openMenu = () => {
+    navLinks.classList.remove("open");
     navLinks.classList.add("is-open");
     menuOverlay.classList.add("is-open");
     menuToggle.classList.add("is-open");
     document.body.classList.add("menu-open");
+
     menuToggle.setAttribute("aria-expanded", "true");
+    menuToggle.setAttribute("aria-label", "關閉選單");
     menuOverlay.setAttribute("aria-hidden", "false");
   };
 
-  const closeMenu = () => {
-    navLinks.classList.remove("is-open");
-    menuOverlay.classList.remove("is-open");
-    menuToggle.classList.remove("is-open");
-    document.body.classList.remove("menu-open");
-    menuToggle.setAttribute("aria-expanded", "false");
-    menuOverlay.setAttribute("aria-hidden", "true");
-  };
+  // 每次載入或從 Safari 上一頁返回，都強制先關閉
+  closeMenu();
+  window.addEventListener("pageshow", closeMenu);
 
   menuToggle.addEventListener("click", (event) => {
+    event.preventDefault();
     event.stopPropagation();
-    navLinks.classList.contains("is-open") ? closeMenu() : openMenu();
+
+    if (navLinks.classList.contains("is-open")) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
   });
 
-  menuOverlay.addEventListener("click", closeMenu);
+  // 點擊選單以外的遮罩範圍即可收回
+  menuOverlay.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeMenu();
+  });
 
   navLinks.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", closeMenu);

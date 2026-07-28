@@ -2611,71 +2611,87 @@ html{scroll-behavior:smooth;}
 }
 
 
+
 /* =========================
-   V23 手機版右側滑出選單
+   V24 手機版右側滑出選單（修正版）
 ========================= */
 .menu-overlay{
   position:fixed;
   inset:0;
   z-index:998;
-  background:rgba(31,27,23,.34);
+  background:rgba(31,27,23,.30);
   opacity:0;
   visibility:hidden;
   pointer-events:none;
   transition:
-    opacity .38s cubic-bezier(.22,.61,.36,1),
-    visibility .38s;
+    opacity .34s cubic-bezier(.22,.61,.36,1),
+    visibility 0s linear .34s;
 }
 
 @media(max-width:900px){
-  .nav-links{
+  .nav-links,
+  .nav-links.open{
     position:fixed;
     top:0;
     right:0;
     z-index:999;
-    width:min(82vw,360px);
+
+    /* 原本約 82vw，縮小為約一半畫面 */
+    width:52vw;
+    min-width:210px;
+    max-width:280px;
     height:100dvh;
-    padding:108px 34px 40px;
+
+    padding:104px 24px 36px;
     display:flex;
     flex-direction:column;
     align-items:flex-start;
     justify-content:flex-start;
     gap:0;
+
     background:#e8e1d5;
-    box-shadow:-18px 0 50px rgba(34,29,25,.14);
-    transform:translateX(100%);
-    opacity:1;
-    visibility:visible;
-    pointer-events:none;
-    transition:transform .46s cubic-bezier(.22,.61,.36,1);
+    box-shadow:-14px 0 42px rgba(34,29,25,.13);
+
+    transform:translate3d(100%,0,0) !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    pointer-events:none !important;
+
+    transition:transform .42s cubic-bezier(.22,.61,.36,1);
+    will-change:transform;
   }
 
   .nav-links a{
     width:100%;
-    padding:18px 0;
+    padding:17px 0;
     border-bottom:1px solid rgba(53,46,39,.16);
-    font-size:1rem;
-    letter-spacing:.18em;
     color:#2f2923;
+    font-size:.95rem;
+    letter-spacing:.16em;
   }
 
   .nav-links a::after{
     display:none;
   }
 
-  .nav-links.is-open{
-    transform:translateX(0);
-    pointer-events:auto;
+  .nav-links.is-open,
+  .nav-links.open.is-open{
+    transform:translate3d(0,0,0) !important;
+    pointer-events:auto !important;
   }
 
   .menu-overlay.is-open{
     opacity:1;
     visibility:visible;
     pointer-events:auto;
+    transition:
+      opacity .34s cubic-bezier(.22,.61,.36,1),
+      visibility 0s;
   }
 
   body.menu-open{
     overflow:hidden;
+    touch-action:none;
   }
 
   .menu-toggle{
@@ -2685,9 +2701,9 @@ html{scroll-behavior:smooth;}
 
   .menu-toggle span{
     transition:
-      transform .35s ease,
-      opacity .25s ease,
-      background-color .25s ease;
+      transform .32s ease,
+      opacity .22s ease,
+      background-color .22s ease;
   }
 
   .menu-toggle.is-open span:nth-child(1){
@@ -2700,5 +2716,15 @@ html{scroll-behavior:smooth;}
 
   .menu-toggle.is-open span:nth-child(3){
     transform:translateY(-7px) rotate(-45deg);
+  }
+}
+
+@media(max-width:390px){
+  .nav-links,
+  .nav-links.open{
+    width:56vw;
+    min-width:200px;
+    padding-left:21px;
+    padding-right:21px;
   }
 }
