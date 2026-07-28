@@ -320,3 +320,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
+// =========================
+// V23 手機右側滑出選單
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
+  const menuToggle = document.getElementById("menuToggle");
+  const navLinks = document.getElementById("navLinks");
+  const menuOverlay = document.getElementById("menuOverlay");
+
+  if (!menuToggle || !navLinks || !menuOverlay) return;
+
+  const openMenu = () => {
+    navLinks.classList.add("is-open");
+    menuOverlay.classList.add("is-open");
+    menuToggle.classList.add("is-open");
+    document.body.classList.add("menu-open");
+    menuToggle.setAttribute("aria-expanded", "true");
+    menuOverlay.setAttribute("aria-hidden", "false");
+  };
+
+  const closeMenu = () => {
+    navLinks.classList.remove("is-open");
+    menuOverlay.classList.remove("is-open");
+    menuToggle.classList.remove("is-open");
+    document.body.classList.remove("menu-open");
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuOverlay.setAttribute("aria-hidden", "true");
+  };
+
+  menuToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    navLinks.classList.contains("is-open") ? closeMenu() : openMenu();
+  });
+
+  menuOverlay.addEventListener("click", closeMenu);
+
+  navLinks.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", closeMenu);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeMenu();
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900) closeMenu();
+  });
+});
