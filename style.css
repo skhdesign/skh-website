@@ -2728,3 +2728,49 @@ html{scroll-behavior:smooth;}
     padding-right:21px;
   }
 }
+
+
+/* =========================
+   V25 自動案件頁文字區
+========================= */
+.auto-project-english{
+  margin:0 0 12px;
+  color:#8b8176;
+  font-size:.72rem;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+}
+
+.auto-project-description{
+  max-width:900px;
+  margin:64px auto 0;
+  padding-top:34px;
+  border-top:1px solid rgba(40,35,30,.14);
+}
+
+.auto-project-description h2{
+  margin:0 0 22px;
+  color:#8b8176;
+  font-size:.72rem;
+  font-weight:400;
+  letter-spacing:.2em;
+}
+
+.auto-project-description p{
+  margin:0 0 16px;
+  color:#4b453f;
+  font-size:.96rem;
+  line-height:2;
+}
+
+@media(max-width:700px){
+  .auto-project-description{
+    margin-top:42px;
+    padding-top:26px;
+  }
+
+  .auto-project-description p{
+    font-size:.92rem;
+    line-height:1.9;
+  }
+}
