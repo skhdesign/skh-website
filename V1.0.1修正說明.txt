@@ -1,0 +1,26 @@
+﻿SKH Website V1.0.1 樣板修正版
+================================
+
+本版修正：
+「產生網站失敗：找不到 project-auto-template.html」
+
+原因：
+正式版在複製或整理檔案時，作品頁樣板可能沒有成功進入
+GitHub 的 skh-website 主資料夾。
+
+修正方式：
+1. project-auto-template.html 已重新放回正式版。
+2. generate-projects.ps1 現在內建完整作品頁樣板。
+3. 未來即使 project-auto-template.html 被誤刪，
+   按「產生網站」時也會自動重新建立，不會再因此停止。
+
+套用方式：
+1. 關閉 SKH Website Manager。
+2. 將本版資料夾內全部檔案複製到：
+   文件\GitHub\skh-website
+3. 選擇「取代目的地中的檔案」。
+4. 重新開啟 START-SKH-MANAGER.cmd。
+5. 選擇案件後按「產生網站」。
+
+不需要刪除你已新增的 projects-data 案件資料夾。
+覆蓋檔案不會刪除你的案件文字與照片。

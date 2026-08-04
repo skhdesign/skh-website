@@ -11,6 +11,88 @@ function Write-Utf8([string]$Path, [string]$Content) {
     [System.IO.File]::WriteAllText($Path, $Content, $Utf8NoBom)
 }
 
+$DefaultProjectTemplate = @'
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="{{DESCRIPTION_META}}">
+  <title>{{TITLE}}｜黃上科建築師事務所</title>
+  <link rel="stylesheet" href="style.css?v=100">
+</head>
+<body class="detail-page">
+  <header class="navbar inner-navbar" id="navbar">
+    <a class="brand brand-logo" href="index.html" aria-label="返回首頁">
+      <img src="images/skh-logo.png" alt="SKH Design 黃上科建築師事務所">
+    </a>
+    <button class="menu-toggle" id="menuToggle" aria-label="開啟選單" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html#projects">作品</a>
+      <a href="about-text.html">關於</a>
+      <a href="about.html">事務所</a>
+      <a href="contact.html">聯絡</a>
+    </nav>
+  </header>
+
+  <div class="menu-overlay" id="menuOverlay" aria-hidden="true"></div>
+
+  <main>
+    <section class="detail-gallery" data-detail-gallery>
+      <div class="detail-viewport">
+        <div class="detail-track">
+{{SLIDES}}
+        </div>
+      </div>
+      <div class="detail-thumbnail-bar" aria-label="作品照片縮圖">
+{{THUMBS}}
+      </div>
+    </section>
+
+    <section class="detail-info">
+      <p class="auto-project-english">{{ENGLISH_TITLE}}</p>
+      <h1>{{TITLE}}</h1>
+      <div class="detail-meta-grid">
+{{META}}
+      </div>
+{{DESCRIPTION_SECTION}}
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><img src="images/skh-logo.png" alt="SKH Design 黃上科建築師事務所"></div>
+      <div class="footer-info">
+        <div class="footer-contact-row footer-contact-static"><img class="footer-icon-img" src="images/icons/location.svg" alt="" aria-hidden="true"><span>宜蘭縣羅東鎮公正路289-4號2樓</span></div>
+        <div class="footer-contact-row footer-contact-static"><img class="footer-icon-img" src="images/icons/phone.svg" alt="" aria-hidden="true"><span>電話：(03)961-0816</span></div>
+        <div class="footer-contact-row footer-contact-static"><img class="footer-icon-img" src="images/icons/fax.svg" alt="" aria-hidden="true"><span>傳真：(03)961-5912</span></div>
+        <div class="footer-contact-row footer-contact-static"><img class="footer-icon-img" src="images/icons/mail.svg" alt="" aria-hidden="true"><span>信箱：koe434@gmail.com</span></div>
+      </div>
+      <div class="footer-links">
+        <a href="index.html#projects">作品</a>
+        <a href="about-text.html">關於</a>
+        <a href="about.html">事務所</a>
+        <a href="contact.html">聯絡</a>
+      </div>
+    </div>
+    <div class="footer-bottom"><span>Architecture · Interior · Planning</span><span>© 2026 SKH DESIGN</span></div>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox-close" type="button" aria-label="關閉大圖">×</button>
+    <button class="lightbox-zone lightbox-zone-left" type="button" aria-label="上一張照片"></button>
+    <button class="lightbox-zone lightbox-zone-right" type="button" aria-label="下一張照片"></button>
+    <div class="lightbox-stage"><img class="lightbox-image" src="" alt=""></div>
+    <div class="lightbox-counter" aria-live="polite"></div>
+  </div>
+
+  <script src="script.js?v=100"></script>
+</body>
+</html>
+'@
+
 function Escape-Html([string]$Text) {
     if ($null -eq $Text) { return "" }
     return [System.Net.WebUtility]::HtmlEncode($Text)
@@ -84,7 +166,8 @@ if (!(Test-Path -LiteralPath $DataRoot)) {
     throw "找不到 projects-data 資料夾。"
 }
 if (!(Test-Path -LiteralPath $TemplatePath)) {
-    throw "找不到 project-auto-template.html。"
+    Write-Utf8 $TemplatePath $DefaultProjectTemplate
+    $logs.Add("已自動修復：project-auto-template.html")
 }
 
 $template = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
