@@ -1,0 +1,9 @@
+﻿[2026-08-04 09:45:51] System.Management.Automation.RuntimeException: 找不到 AUTO_PROJECTS_START / AUTO_PROJECTS_END 標記。
+位於 C:\Users\user\Documents\GitHub\skh-website\generate-projects.ps1:74 字元:9
++         throw "找不到 AUTO_PROJECTS_START / AUTO_PROJECTS_END 標記。"
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (找不到 AUTO_PROJEC...ROJECTS_END 標記。:String) [], RuntimeException
+    + FullyQualifiedErrorId : 找不到 AUTO_PROJECTS_START / AUTO_PROJECTS_END 標記。
+ 
+
+
