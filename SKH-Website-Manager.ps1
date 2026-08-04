@@ -108,6 +108,40 @@ function Get-PhotoFiles([string]$Folder) {
     )
 }
 
+
+function Create-WebsiteBackup {
+    $backupRoot = Join-Path (Split-Path -Parent $Root) "SKH-Website-Backups"
+    if (!(Test-Path -LiteralPath $backupRoot)) {
+        New-Item -ItemType Directory -Path $backupRoot | Out-Null
+    }
+
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $destination = Join-Path $backupRoot $stamp
+    New-Item -ItemType Directory -Path $destination | Out-Null
+
+    if (Test-Path -LiteralPath $DataRoot) {
+        Copy-Item -LiteralPath $DataRoot -Destination (Join-Path $destination "projects-data") -Recurse -Force
+    }
+
+    foreach ($name in @("index.html","all-projects.html")) {
+        $source = Join-Path $Root $name
+        if (Test-Path -LiteralPath $source) {
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+    }
+
+    Get-ChildItem -LiteralPath $Root -Filter "project-auto-*.html" -File -ErrorAction SilentlyContinue |
+        Copy-Item -Destination $destination -Force
+
+    # 只保留最近 20 份備份。
+    Get-ChildItem -LiteralPath $backupRoot -Directory |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -Skip 20 |
+        Remove-Item -Recurse -Force
+
+    return $destination
+}
+
 # ------------------------------
 # Main window
 # ------------------------------
@@ -871,7 +905,8 @@ $generateButton.Add_Click({
     }
 
     try {
-        $statusLabel.Text = "正在產生網站..."
+        $statusLabel.Text = "正在備份並產生網站..."
+        $backupPath = Create-WebsiteBackup
         $form.Cursor = [System.Windows.Forms.Cursors]::WaitCursor
 
         $process = New-Object System.Diagnostics.ProcessStartInfo
@@ -893,7 +928,7 @@ $generateButton.Add_Click({
         }
 
         $statusLabel.Text = "網站產生完成"
-        Show-Info "網站已成功產生。`r`n`r`n下一步請開啟 GitHub Desktop，執行 Commit 與 Push origin。"
+        Show-Info "網站已成功產生，並已建立自動備份。`r`n`r`n備份位置：`r`n$backupPath`r`n`r`n下一步請開啟 GitHub Desktop，執行 Commit 與 Push origin。"
     }
     catch {
         Log-Error $_.Exception.ToString()

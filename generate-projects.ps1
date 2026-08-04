@@ -69,7 +69,7 @@ function Make-Meta([string]$Label, [string]$Value) {
 
 function Replace-AutoBlock([string]$Content, [string]$Cards) {
     $pattern = '(?s)<!-- AUTO_PROJECTS_START -->.*?<!-- AUTO_PROJECTS_END -->'
-    $replacement = "<!-- AUTO_PROJECTS_START -->`n        <!-- 此區塊由「更新作品.bat」自動產生，請勿手動修改 -->`n$Cards        <!-- AUTO_PROJECTS_END -->"
+    $replacement = "<!-- AUTO_PROJECTS_START -->`n        <!-- 此區塊由 SKH Website Manager 自動產生，請勿手動修改 -->`n$Cards        <!-- AUTO_PROJECTS_END -->"
     if ($Content -notmatch $pattern) {
         throw "找不到 AUTO_PROJECTS_START / AUTO_PROJECTS_END 標記。"
     }
@@ -88,6 +88,9 @@ if (!(Test-Path -LiteralPath $TemplatePath)) {
 }
 
 $template = Get-Content -LiteralPath $TemplatePath -Raw -Encoding UTF8
+# 清除已不存在案件所留下的舊自動頁面
+Get-ChildItem -LiteralPath $Root -Filter "project-auto-*.html" -File -ErrorAction SilentlyContinue | Remove-Item -Force
+
 $projects = New-Object System.Collections.Generic.List[object]
 $seenSlugs = @{}
 
@@ -222,19 +225,27 @@ foreach ($item in $sorted) {
 
 $indexPath = Join-Path $Root "index.html"
 $index = Get-Content -LiteralPath $indexPath -Raw -Encoding UTF8
-$index = Replace-AutoBlock $index $homeCards.ToString()
+$homeOutput = $homeCards.ToString()
+if ([string]::IsNullOrWhiteSpace($homeOutput)) {
+    $homeOutput = "        <div class=`"projects-empty-state`"><p>作品資料整理中</p><span>PROJECTS COMING SOON</span></div>`n"
+}
+$index = Replace-AutoBlock $index $homeOutput
 Write-Utf8 $indexPath $index
 
 $allPath = Join-Path $Root "all-projects.html"
 if (Test-Path -LiteralPath $allPath) {
     $all = Get-Content -LiteralPath $allPath -Raw -Encoding UTF8
-    $all = Replace-AutoBlock $all $allCards.ToString()
+    $allOutput = $allCards.ToString()
+    if ([string]::IsNullOrWhiteSpace($allOutput)) {
+        $allOutput = "      <div class=`"projects-empty-state`"><p>作品資料整理中</p><span>PROJECTS COMING SOON</span></div>`n"
+    }
+    $all = Replace-AutoBlock $all $allOutput
     Write-Utf8 $allPath $all
 }
 
 $logs.Add("")
 $logs.Add("共產生 $($sorted.Count) 個案件。")
-$logs.Add("下一步：開啟 GitHub Desktop → Commit → Push origin。")
+$logs.Add("下一步：開啟 GitHub Desktop，執行 Commit 與 Push origin。")
 Write-Utf8 $LogPath ($logs -join "`r`n")
 
 Write-Host ""

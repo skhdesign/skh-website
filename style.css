@@ -2774,3 +2774,22 @@ html{scroll-behavior:smooth;}
     line-height:1.9;
   }
 }
+
+
+/* V1.0 正式版：尚無作品狀態 */
+.projects-empty-state{
+  grid-column:1 / -1;
+  width:100%;
+  min-height:220px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  border-top:1px solid rgba(48,42,37,.12);
+  border-bottom:1px solid rgba(48,42,37,.12);
+  color:#6f675e;
+  text-align:center;
+}
+.projects-empty-state p{margin:0;font-size:1rem;letter-spacing:.16em;}
+.projects-empty-state span{font-size:.68rem;letter-spacing:.22em;color:#9a9187;}
