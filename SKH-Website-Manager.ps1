@@ -7,12 +7,16 @@ Add-Type -AssemblyName System.Drawing
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $DataRoot = Join-Path $Root "projects-data"
+$HomeRoot = Join-Path $Root "home-data"
 $Generator = Join-Path $Root "generate-projects.ps1"
 $ErrorLog = Join-Path $Root "SKH-Manager-Error.txt"
 $Utf8Bom = New-Object System.Text.UTF8Encoding($true)
 
 if (!(Test-Path -LiteralPath $DataRoot)) {
     New-Item -ItemType Directory -Path $DataRoot | Out-Null
+}
+if (!(Test-Path -LiteralPath $HomeRoot)) {
+    New-Item -ItemType Directory -Path $HomeRoot | Out-Null
 }
 
 function Log-Error([string]$Text) {
@@ -121,6 +125,9 @@ function Create-WebsiteBackup {
 
     if (Test-Path -LiteralPath $DataRoot) {
         Copy-Item -LiteralPath $DataRoot -Destination (Join-Path $destination "projects-data") -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $HomeRoot) {
+        Copy-Item -LiteralPath $HomeRoot -Destination (Join-Path $destination "home-data") -Recurse -Force
     }
 
     foreach ($name in @("index.html","all-projects.html")) {
@@ -278,6 +285,147 @@ $photosTab.Text = "照片管理"
 $photosTab.BackColor = [System.Drawing.Color]::White
 $tabs.TabPages.Add($photosTab)
 
+$homeTab = New-Object System.Windows.Forms.TabPage
+$homeTab.Text = "首頁管理"
+$homeTab.BackColor = [System.Drawing.Color]::White
+$tabs.TabPages.Add($homeTab)
+
+$homeSplit = New-Object System.Windows.Forms.SplitContainer
+$homeSplit.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeSplit.FixedPanel = [System.Windows.Forms.FixedPanel]::Panel1
+$homeSplit.SplitterDistance = 370
+$homeTab.Controls.Add($homeSplit)
+
+$homeLeftLayout = New-Object System.Windows.Forms.TableLayoutPanel
+$homeLeftLayout.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeLeftLayout.Padding = New-Object System.Windows.Forms.Padding(16)
+$homeLeftLayout.RowCount = 4
+$homeLeftLayout.ColumnCount = 2
+$homeLeftLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+$homeLeftLayout.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+$homeLeftLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 58)))
+$homeLeftLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+$homeLeftLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 50)))
+$homeLeftLayout.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 50)))
+$homeSplit.Panel1.Controls.Add($homeLeftLayout)
+
+$homeTitleLabel = New-Object System.Windows.Forms.Label
+$homeTitleLabel.Text = "首頁輪播照片`r`n建議尺寸：1920 × 1280 px"
+$homeTitleLabel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeTitleLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$homeTitleLabel.Font = New-Object System.Drawing.Font("Microsoft JhengHei UI", 10, [System.Drawing.FontStyle]::Bold)
+$homeLeftLayout.Controls.Add($homeTitleLabel, 0, 0)
+$homeLeftLayout.SetColumnSpan($homeTitleLabel, 2)
+
+$homeList = New-Object System.Windows.Forms.ListBox
+$homeList.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeList.DisplayMember = "DisplayName"
+$homeLeftLayout.Controls.Add($homeList, 0, 1)
+$homeLeftLayout.SetColumnSpan($homeList, 2)
+
+$homeNewButton = New-Object System.Windows.Forms.Button
+$homeNewButton.Text = "＋ 新增首頁照片"
+$homeNewButton.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeNewButton.Margin = New-Object System.Windows.Forms.Padding(0,6,5,4)
+$homeLeftLayout.Controls.Add($homeNewButton, 0, 2)
+
+$homeDeleteButton = New-Object System.Windows.Forms.Button
+$homeDeleteButton.Text = "刪除首頁照片"
+$homeDeleteButton.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeDeleteButton.Margin = New-Object System.Windows.Forms.Padding(5,6,0,4)
+$homeLeftLayout.Controls.Add($homeDeleteButton, 1, 2)
+
+$homeOpenFolderButton = New-Object System.Windows.Forms.Button
+$homeOpenFolderButton.Text = "開啟首頁照片資料夾"
+$homeOpenFolderButton.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeOpenFolderButton.Margin = New-Object System.Windows.Forms.Padding(0,4,0,2)
+$homeLeftLayout.Controls.Add($homeOpenFolderButton, 0, 3)
+$homeLeftLayout.SetColumnSpan($homeOpenFolderButton, 2)
+
+$homeRight = New-Object System.Windows.Forms.TableLayoutPanel
+$homeRight.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeRight.Padding = New-Object System.Windows.Forms.Padding(24)
+$homeRight.ColumnCount = 2
+$homeRight.RowCount = 6
+$homeRight.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 150)))
+$homeRight.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 48)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 56)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 56)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 56)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+$homeRight.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 58)))
+$homeSplit.Panel2.Controls.Add($homeRight)
+
+$homeIntro = New-Object System.Windows.Forms.Label
+$homeIntro.Text = "首頁照片與作品照片完全分開；案名會自動使用所選作品的案件名稱。"
+$homeIntro.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeIntro.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$homeIntro.ForeColor = [System.Drawing.Color]::FromArgb(105,96,88)
+$homeRight.Controls.Add($homeIntro, 0, 0)
+$homeRight.SetColumnSpan($homeIntro, 2)
+
+$homeProjectLabel = New-Object System.Windows.Forms.Label
+$homeProjectLabel.Text = "連結作品"
+$homeProjectLabel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeProjectLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$homeRight.Controls.Add($homeProjectLabel, 0, 1)
+
+$homeProjectCombo = New-Object System.Windows.Forms.ComboBox
+$homeProjectCombo.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeProjectCombo.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
+$homeProjectCombo.DisplayMember = "DisplayName"
+$homeRight.Controls.Add($homeProjectCombo, 1, 1)
+
+$homeOrderLabel = New-Object System.Windows.Forms.Label
+$homeOrderLabel.Text = "輪播順序"
+$homeOrderLabel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeOrderLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$homeRight.Controls.Add($homeOrderLabel, 0, 2)
+
+$homeOrderBox = New-Object System.Windows.Forms.TextBox
+$homeOrderBox.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeRight.Controls.Add($homeOrderBox, 1, 2)
+
+$homeVisibleLabel = New-Object System.Windows.Forms.Label
+$homeVisibleLabel.Text = "顯示狀態"
+$homeVisibleLabel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeVisibleLabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$homeRight.Controls.Add($homeVisibleLabel, 0, 3)
+
+$homeVisibleCheck = New-Object System.Windows.Forms.CheckBox
+$homeVisibleCheck.Text = "顯示於首頁輪播"
+$homeVisibleCheck.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeRight.Controls.Add($homeVisibleCheck, 1, 3)
+
+$homePreview = New-Object System.Windows.Forms.PictureBox
+$homePreview.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homePreview.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
+$homePreview.BackColor = [System.Drawing.Color]::FromArgb(238,236,232)
+$homeRight.Controls.Add($homePreview, 0, 4)
+$homeRight.SetColumnSpan($homePreview, 2)
+
+$homeActions = New-Object System.Windows.Forms.FlowLayoutPanel
+$homeActions.Dock = [System.Windows.Forms.DockStyle]::Fill
+$homeActions.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
+$homeRight.Controls.Add($homeActions, 0, 5)
+$homeRight.SetColumnSpan($homeActions, 2)
+
+$homeImageButton = New-Object System.Windows.Forms.Button
+$homeImageButton.Text = "選擇／更換首頁照片"
+$homeImageButton.Size = New-Object System.Drawing.Size(180, 40)
+$homeActions.Controls.Add($homeImageButton)
+
+$homeSaveButton = New-Object System.Windows.Forms.Button
+$homeSaveButton.Text = "儲存首頁設定"
+$homeSaveButton.Size = New-Object System.Drawing.Size(150, 40)
+$homeSaveButton.Margin = New-Object System.Windows.Forms.Padding(12,0,0,0)
+$homeSaveButton.BackColor = [System.Drawing.Color]::FromArgb(166,128,80)
+$homeSaveButton.ForeColor = [System.Drawing.Color]::White
+$homeSaveButton.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+$homeSaveButton.FlatAppearance.BorderSize = 0
+$homeActions.Controls.Add($homeSaveButton)
+
 # ------------------------------
 # Info tab
 # ------------------------------
@@ -338,7 +486,7 @@ $publishCheck.Margin = New-Object System.Windows.Forms.Padding(0,5,30,5)
 $optionsPanel.Controls.Add($publishCheck)
 
 $homeCheck = New-Object System.Windows.Forms.CheckBox
-$homeCheck.Text = "顯示在首頁"
+$homeCheck.Text = "顯示在首頁作品區"
 $homeCheck.AutoSize = $true
 $homeCheck.Margin = New-Object System.Windows.Forms.Padding(0,5,30,5)
 $optionsPanel.Controls.Add($homeCheck)
@@ -618,6 +766,137 @@ function Get-NextProjectOrder {
 
     if ($orders.Count -eq 0) { return 10 }
     return (($orders | Measure-Object -Maximum).Maximum + 10)
+}
+
+
+$script:currentHomeFolder = $null
+$script:loadingHome = $false
+
+function Get-HomeImage([string]$Folder) {
+    return Get-ChildItem -LiteralPath $Folder -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.BaseName.ToLower() -eq "hero" -and
+            $_.Extension.ToLower() -in @(".jpg",".jpeg",".png",".webp")
+        } |
+        Select-Object -First 1
+}
+
+function Write-HomeInfo([string]$Folder, [string]$ProjectSlug, [string]$Order, [bool]$Visible) {
+    $lines = @(
+        "顯示：$(if ($Visible) { '是' } else { '否' })"
+        "排序：$Order"
+        "連結作品：$ProjectSlug"
+    )
+    [System.IO.File]::WriteAllText((Join-Path $Folder "info.txt"), ($lines -join "`r`n"), $Utf8Bom)
+}
+
+function Refresh-HomeProjectCombo([string]$SelectedSlug = "") {
+    $homeProjectCombo.Items.Clear()
+    foreach ($folder in Get-ChildItem -LiteralPath $DataRoot -Directory |
+        Where-Object { -not $_.Name.StartsWith("_") } | Sort-Object Name) {
+        $info = Read-Info (Join-Path $folder.FullName "info.txt")
+        $titleText = if ($info["案件名稱"]) { [string]$info["案件名稱"] } else { $folder.Name }
+        $slugText = if ($info["網址代號"]) { [string]$info["網址代號"] } else { $folder.Name }
+        $item = New-Object PSObject -Property @{ DisplayName=$titleText; Slug=$slugText }
+        [void]$homeProjectCombo.Items.Add($item)
+    }
+    if ($homeProjectCombo.Items.Count -gt 0) {
+        $target = 0
+        if ($SelectedSlug) {
+            for ($i=0; $i -lt $homeProjectCombo.Items.Count; $i++) {
+                if ($homeProjectCombo.Items[$i].Slug -eq $SelectedSlug) { $target=$i; break }
+            }
+        }
+        $homeProjectCombo.SelectedIndex = $target
+    }
+}
+
+function Clear-HomeEditor {
+    $script:currentHomeFolder = $null
+    $homeOrderBox.Text = ""
+    $homeVisibleCheck.Checked = $false
+    Refresh-HomeProjectCombo
+    if ($homePreview.Image) { $homePreview.Image.Dispose(); $homePreview.Image=$null }
+}
+
+function Load-HomeItem([string]$Folder) {
+    if ($script:loadingHome) { return }
+    $script:loadingHome = $true
+    try {
+        $script:currentHomeFolder = $Folder
+        $info = Read-Info (Join-Path $Folder "info.txt")
+        $homeOrderBox.Text = [string]$info["排序"]
+        $homeVisibleCheck.Checked = ([string]$info["顯示"]).Trim() -eq "是"
+        Refresh-HomeProjectCombo ([string]$info["連結作品"])
+        if ($homePreview.Image) { $homePreview.Image.Dispose(); $homePreview.Image=$null }
+        $imageFile = Get-HomeImage $Folder
+        if ($imageFile) {
+            $stream = New-Object System.IO.FileStream($imageFile.FullName,'Open','Read','ReadWrite')
+            $sourceImage = [System.Drawing.Image]::FromStream($stream)
+            $homePreview.Image = New-Object System.Drawing.Bitmap($sourceImage)
+            $sourceImage.Dispose(); $stream.Dispose()
+        }
+    } finally {
+        $script:loadingHome = $false
+    }
+}
+
+function Refresh-HomeList([string]$SelectFolder = "") {
+    $homeList.Items.Clear()
+    foreach ($folder in Get-ChildItem -LiteralPath $HomeRoot -Directory | Sort-Object Name) {
+        $info = Read-Info (Join-Path $folder.FullName "info.txt")
+        $display = "尚未指定作品"
+        $projectSlug = [string]$info["連結作品"]
+        if ($projectSlug) {
+            foreach ($projectFolder in Get-ChildItem -LiteralPath $DataRoot -Directory | Where-Object { -not $_.Name.StartsWith("_") }) {
+                $projectInfo = Read-Info (Join-Path $projectFolder.FullName "info.txt")
+                $slug = if ($projectInfo["網址代號"]) { [string]$projectInfo["網址代號"] } else { $projectFolder.Name }
+                if ($slug -eq $projectSlug) { $display=[string]$projectInfo["案件名稱"]; break }
+            }
+        }
+        $order = if ($info["排序"]) { [string]$info["排序"] } else { "9999" }
+        $item = New-Object PSObject -Property @{
+            DisplayName="$order｜$display"; FolderName=$folder.Name; FullPath=$folder.FullName
+        }
+        [void]$homeList.Items.Add($item)
+    }
+    if ($homeList.Items.Count -eq 0) { Clear-HomeEditor; return }
+    $target=0
+    if ($SelectFolder) {
+        for ($i=0; $i -lt $homeList.Items.Count; $i++) {
+            if ($homeList.Items[$i].FolderName -eq $SelectFolder) { $target=$i; break }
+        }
+    }
+    $homeList.SelectedIndex=$target
+    Load-HomeItem ([string]$homeList.Items[$target].FullPath)
+}
+
+function Get-NextHomeOrder {
+    $orders = New-Object System.Collections.Generic.List[int]
+    foreach ($folder in Get-ChildItem -LiteralPath $HomeRoot -Directory) {
+        $info=Read-Info (Join-Path $folder.FullName "info.txt")
+        $value=0
+        if ([int]::TryParse([string]$info["排序"],[ref]$value)) { $orders.Add($value) }
+    }
+    if ($orders.Count -eq 0) { return 10 }
+    return (($orders | Measure-Object -Maximum).Maximum + 10)
+}
+
+function Save-CurrentHome {
+    if (!$script:currentHomeFolder) { Show-Warning "請先新增或選擇首頁照片。"; return $false }
+    if ($null -eq $homeProjectCombo.SelectedItem) { Show-Warning "請選擇這張首頁照片要連結的作品。"; return $false }
+    if ($null -eq (Get-HomeImage $script:currentHomeFolder)) {
+        Show-Warning "請先選擇首頁照片。建議尺寸 1920 × 1280 px。"; return $false
+    }
+    $orderValue=$homeOrderBox.Text.Trim()
+    $parsed=0
+    if (![int]::TryParse($orderValue,[ref]$parsed)) {
+        Show-Warning "輪播順序請輸入數字，例如 10、20、30。"; return $false
+    }
+    Write-HomeInfo $script:currentHomeFolder ([string]$homeProjectCombo.SelectedItem.Slug) $orderValue $homeVisibleCheck.Checked
+    Refresh-HomeList (Split-Path $script:currentHomeFolder -Leaf)
+    $statusLabel.Text="首頁設定已儲存"
+    return $true
 }
 
 # ------------------------------
@@ -914,8 +1193,66 @@ function Move-Photo([int]$Direction) {
 $upButton.Add_Click({ Move-Photo -1 })
 $downButton.Add_Click({ Move-Photo 1 })
 
+
+$homeList.Add_SelectedIndexChanged({
+    if ($script:loadingHome -or $null -eq $homeList.SelectedItem) { return }
+    $path=[string]$homeList.SelectedItem.FullPath
+    if ($path -and (Test-Path -LiteralPath $path)) { Load-HomeItem $path }
+})
+
+$homeNewButton.Add_Click({
+    $folderName="hero-" + (Get-Date -Format "yyyyMMddHHmmssfff")
+    $folder=Join-Path $HomeRoot $folderName
+    New-Item -ItemType Directory -Path $folder | Out-Null
+    Write-HomeInfo $folder "" ([string](Get-NextHomeOrder)) $true
+    Refresh-HomeList $folderName
+})
+
+$homeDeleteButton.Add_Click({
+    if (!$script:currentHomeFolder) { return }
+    if (Confirm-Action "確定刪除這張首頁輪播照片及設定嗎？`r`n作品案件與作品照片不會受到影響。") {
+        if ($homePreview.Image) { $homePreview.Image.Dispose(); $homePreview.Image=$null }
+        Remove-Item -LiteralPath $script:currentHomeFolder -Recurse -Force
+        Refresh-HomeList
+    }
+})
+
+$homeOpenFolderButton.Add_Click({
+    if ($script:currentHomeFolder) { Start-Process explorer.exe $script:currentHomeFolder }
+    else { Start-Process explorer.exe $HomeRoot }
+})
+
+$homeImageButton.Add_Click({
+    if (!$script:currentHomeFolder) { Show-Warning "請先按「＋ 新增首頁照片」。"; return }
+    $dialog=New-Object System.Windows.Forms.OpenFileDialog
+    $dialog.Title="選擇首頁輪播照片（建議 1920 × 1280 px）"
+    $dialog.Filter="圖片檔案|*.jpg;*.jpeg;*.png;*.webp"
+    if ($dialog.ShowDialog($form) -eq [System.Windows.Forms.DialogResult]::OK) {
+        foreach ($oldImage in Get-ChildItem -LiteralPath $script:currentHomeFolder -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.BaseName.ToLower() -eq "hero" }) {
+            Remove-Item -LiteralPath $oldImage.FullName -Force
+        }
+        $ext=[System.IO.Path]::GetExtension($dialog.FileName).ToLower()
+        $target=Join-Path $script:currentHomeFolder ("hero"+$ext)
+        Copy-Item -LiteralPath $dialog.FileName -Destination $target -Force
+        if ($homePreview.Image) { $homePreview.Image.Dispose(); $homePreview.Image=$null }
+        $stream=New-Object System.IO.FileStream($target,'Open','Read','ReadWrite')
+        $sourceImage=[System.Drawing.Image]::FromStream($stream)
+        $homePreview.Image=New-Object System.Drawing.Bitmap($sourceImage)
+        if ($sourceImage.Width -ne 1920 -or $sourceImage.Height -ne 1280) {
+            Show-Info "照片已加入。`r`n目前尺寸：$($sourceImage.Width) × $($sourceImage.Height) px`r`n建議使用 1920 × 1280 px。"
+        }
+        $sourceImage.Dispose(); $stream.Dispose()
+    }
+})
+
+$homeSaveButton.Add_Click({ [void](Save-CurrentHome) })
+
 $generateButton.Add_Click({
-    if ($script:currentFolder) {
+    if ($tabs.SelectedTab -eq $homeTab -and $script:currentHomeFolder) {
+        if (!(Save-CurrentHome)) { return }
+    }
+    elseif ($script:currentFolder) {
         if (!(Save-CurrentProject)) { return }
     }
 
@@ -962,6 +1299,7 @@ $generateButton.Add_Click({
 
 $form.Add_Shown({
     Refresh-ProjectList
+    Refresh-HomeList
 })
 
 [void]$form.ShowDialog()

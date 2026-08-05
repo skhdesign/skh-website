@@ -3,6 +3,7 @@
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $DataRoot = Join-Path $Root "projects-data"
+$HomeRoot = Join-Path $Root "home-data"
 $TemplatePath = Join-Path $Root "project-auto-template.html"
 $LogPath = Join-Path $Root "作品更新紀錄.txt"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -161,12 +162,33 @@ function Replace-AutoBlock([string]$Content, [string]$Cards) {
     return [regex]::Replace($Content, $pattern, $replacement, 1)
 }
 
+function Replace-HeroBlock([string]$Content, [string]$HeroHtml) {
+    $pattern = '(?s)<!-- AUTO_HERO_START -->.*?<!-- AUTO_HERO_END -->'
+    $replacement = "<!-- AUTO_HERO_START -->`n$HeroHtml      <!-- AUTO_HERO_END -->"
+    if ($Content -notmatch $pattern) {
+        throw "找不到 AUTO_HERO_START / AUTO_HERO_END 標記。"
+    }
+    return [regex]::Replace($Content, $pattern, $replacement, 1)
+}
+
+function Get-HeroImage([string]$Folder) {
+    return Get-ChildItem -LiteralPath $Folder -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.BaseName.ToLower() -eq "hero" -and
+            $_.Extension.ToLower() -in @(".jpg",".jpeg",".png",".webp")
+        } |
+        Select-Object -First 1
+}
+
 $logs = New-Object System.Collections.Generic.List[string]
 $logs.Add("更新時間：" + (Get-Date -Format "yyyy-MM-dd HH:mm:ss"))
 $logs.Add("")
 
 if (!(Test-Path -LiteralPath $DataRoot)) {
     throw "找不到 projects-data 資料夾。"
+}
+if (!(Test-Path -LiteralPath $HomeRoot)) {
+    New-Item -ItemType Directory -Path $HomeRoot | Out-Null
 }
 if (!(Test-Path -LiteralPath $TemplatePath)) {
     Write-Utf8 $TemplatePath $DefaultProjectTemplate
@@ -285,6 +307,7 @@ $pHtml
 
     $projects.Add([pscustomobject]@{
         Sort = $sort
+        Slug = $slug
         Title = $title
         Year = $info["完成年度"]
         Cover = $relativeFolder + "/" + [uri]::EscapeDataString($cover.Name)
@@ -296,6 +319,84 @@ $pHtml
 }
 
 $sorted = @($projects | Sort-Object Sort, Title)
+
+# 首頁輪播：首頁照片與作品照片完全分開
+$projectLookup = @{}
+foreach ($project in $sorted) {
+    $projectLookup[$project.Slug] = $project
+}
+
+$heroItems = New-Object System.Collections.Generic.List[object]
+
+foreach ($folder in Get-ChildItem -LiteralPath $HomeRoot -Directory -ErrorAction SilentlyContinue) {
+    $infoPath = Join-Path $folder.FullName "info.txt"
+    if (!(Test-Path -LiteralPath $infoPath)) { continue }
+
+    $heroInfo = Read-Info $infoPath
+    if (!(Is-Yes $heroInfo["顯示"])) { continue }
+
+    $projectSlug = ([string]$heroInfo["連結作品"]).Trim().ToLower()
+    if ([string]::IsNullOrWhiteSpace($projectSlug)) {
+        $logs.Add("首頁略過：$($folder.Name) 尚未指定連結作品")
+        continue
+    }
+
+    if (!$projectLookup.ContainsKey($projectSlug)) {
+        $logs.Add("首頁略過：$($folder.Name) 指定的作品不存在或尚未發布（$projectSlug）")
+        continue
+    }
+
+    $heroImage = Get-HeroImage $folder.FullName
+    if ($null -eq $heroImage) {
+        $logs.Add("首頁略過：$($folder.Name) 尚未設定首頁照片")
+        continue
+    }
+
+    $heroSort = 9999
+    [int]::TryParse([string]$heroInfo["排序"], [ref]$heroSort) | Out-Null
+    $linkedProject = $projectLookup[$projectSlug]
+
+    $heroItems.Add([pscustomobject]@{
+        Sort = $heroSort
+        Title = $linkedProject.Title
+        Url = $linkedProject.Url
+        Image = "home-data/" + [uri]::EscapeDataString($folder.Name) + "/" + [uri]::EscapeDataString($heroImage.Name)
+    })
+}
+
+$sortedHero = @($heroItems | Sort-Object Sort, Title)
+$heroBuilder = New-Object System.Text.StringBuilder
+
+if ($sortedHero.Count -gt 0) {
+    for ($i = 0; $i -lt $sortedHero.Count; $i++) {
+        $heroItem = $sortedHero[$i]
+        $active = if ($i -eq 0) { " active" } else { "" }
+        [void]$heroBuilder.AppendLine('      <article class="slide' + $active + '">')
+        [void]$heroBuilder.AppendLine('        <div class="slide-image" style="background-image:url(''' + $heroItem.Image + ''')"></div>')
+        [void]$heroBuilder.AppendLine('        <a class="project-caption hero-project-link" href="' + $heroItem.Url + '">' + (Escape-Html $heroItem.Title) + '</a>')
+        [void]$heroBuilder.AppendLine('      </article>')
+        [void]$heroBuilder.AppendLine('')
+    }
+
+    [void]$heroBuilder.AppendLine('      <div class="slider-dots" aria-label="首頁作品切換">')
+    for ($i = 0; $i -lt $sortedHero.Count; $i++) {
+        $activeClass = if ($i -eq 0) { " active" } else { "" }
+        $current = if ($i -eq 0) { "true" } else { "false" }
+        [void]$heroBuilder.AppendLine('        <button class="dot' + $activeClass + '" aria-label="顯示第 ' + ($i + 1) + ' 張作品" aria-current="' + $current + '"></button>')
+    }
+    [void]$heroBuilder.AppendLine('      </div>')
+}
+else {
+    [void]$heroBuilder.AppendLine('      <article class="slide active"><div class="slide-image" style="background-image:url(''images/hero01.jpg'')"></div></article>')
+    [void]$heroBuilder.AppendLine('      <article class="slide"><div class="slide-image" style="background-image:url(''images/hero02.jpg'')"></div></article>')
+    [void]$heroBuilder.AppendLine('      <article class="slide"><div class="slide-image" style="background-image:url(''images/hero03.jpg'')"></div></article>')
+    [void]$heroBuilder.AppendLine('      <div class="slider-dots" aria-label="首頁作品切換">')
+    [void]$heroBuilder.AppendLine('        <button class="dot active" aria-label="顯示第 1 張作品" aria-current="true"></button>')
+    [void]$heroBuilder.AppendLine('        <button class="dot" aria-label="顯示第 2 張作品" aria-current="false"></button>')
+    [void]$heroBuilder.AppendLine('        <button class="dot" aria-label="顯示第 3 張作品" aria-current="false"></button>')
+    [void]$heroBuilder.AppendLine('      </div>')
+}
+
 $homeCards = New-Object System.Text.StringBuilder
 $allCards = New-Object System.Text.StringBuilder
 
@@ -317,6 +418,7 @@ if ([string]::IsNullOrWhiteSpace($homeOutput)) {
     $homeOutput = "        <div class=`"projects-empty-state`"><p>作品資料整理中</p><span>PROJECTS COMING SOON</span></div>`n"
 }
 $index = Replace-AutoBlock $index $homeOutput
+$index = Replace-HeroBlock $index $heroBuilder.ToString()
 Write-Utf8 $indexPath $index
 
 $allPath = Join-Path $Root "all-projects.html"
