@@ -20,6 +20,9 @@ $DefaultProjectTemplate = @'
   <meta name="description" content="{{DESCRIPTION_META}}">
   <title>{{TITLE}}｜黃上科建築師事務所</title>
   <link rel="stylesheet" href="style.css?v=100">
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="images/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body class="detail-page">
   <header class="navbar inner-navbar" id="navbar">
@@ -240,7 +243,8 @@ foreach ($folder in Get-ChildItem -LiteralPath $DataRoot -Directory) {
     $meta += Make-Meta "完成年度" $info["完成年度"]
     $meta += Make-Meta "座落位置" $info["座落位置"]
     $meta += Make-Meta "基地面積" $info["基地面積"]
-    $meta += Make-Meta "建築面積" $info["建築面積"]
+    $totalFloorArea = if ($info["總樓地板面積"]) { $info["總樓地板面積"] } else { $info["建築面積"] }
+    $meta += Make-Meta "總樓地板面積" $totalFloorArea
     $meta += Make-Meta "樓層" $info["樓層"]
     $meta += Make-Meta "結構" $info["結構"]
     $meta += Make-Meta "案件狀態" $info["案件狀態"]

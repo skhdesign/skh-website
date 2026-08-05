@@ -78,7 +78,7 @@ function Read-Info([string]$Path) {
 function Write-Info([string]$Folder, [hashtable]$Data) {
     $keys = @(
         "發布","網址代號","排序","案件名稱","英文名稱","完成年度","類型",
-        "座落位置","基地面積","建築面積","樓層","結構","案件狀態",
+        "座落位置","基地面積","總樓地板面積","樓層","結構","案件狀態",
         "首頁顯示","案件介紹"
     )
 
@@ -293,15 +293,15 @@ $infoTable.ColumnCount = 4
 $infoTable.RowCount = 9
 $infoTable.Padding = New-Object System.Windows.Forms.Padding(24)
 $infoTable.Dock = [System.Windows.Forms.DockStyle]::Top
-$infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 100)))
+$infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 165)))
 $infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-$infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 100)))
+$infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Absolute, 165)))
 $infoTable.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 $infoScroll.Controls.Add($infoTable)
 
 $fieldNames = @(
     "案件名稱","英文名稱","網址代號","排序","完成年度","類型",
-    "座落位置","基地面積","建築面積","樓層","結構","案件狀態"
+    "座落位置","基地面積","總樓地板面積","樓層","結構","案件狀態"
 )
 $fields = [ordered]@{}
 
@@ -312,7 +312,7 @@ for ($i = 0; $i -lt $fieldNames.Count; $i++) {
     $fieldColumn = if ($pair -eq 0) { 1 } else { 3 }
 
     $lab = New-Object System.Windows.Forms.Label
-    $lab.Text = $fieldNames[$i]
+    $lab.Text = $(if ($fieldNames[$i] -eq "排序") { "顯示順序（數字小在前）" } else { $fieldNames[$i] })
     $lab.Dock = [System.Windows.Forms.DockStyle]::Fill
     $lab.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
     $lab.Margin = New-Object System.Windows.Forms.Padding(0,8,8,8)
@@ -503,7 +503,12 @@ function Load-Project([string]$Folder) {
         $info = Read-Info (Join-Path $Folder "info.txt")
 
         foreach ($key in $fields.Keys) {
-            $fields[$key].Text = [string]$info[$key]
+            if ($key -eq "總樓地板面積" -and !$info[$key] -and $info["建築面積"]) {
+                $fields[$key].Text = [string]$info["建築面積"]
+            }
+            else {
+                $fields[$key].Text = [string]$info[$key]
+            }
         }
 
         $publishCheck.Checked = ([string]$info["發布"]).Trim() -eq "是"
@@ -600,6 +605,21 @@ function Save-CurrentProject {
     return $true
 }
 
+function Get-NextProjectOrder {
+    $orders = New-Object System.Collections.Generic.List[int]
+
+    foreach ($folder in Get-ChildItem -LiteralPath $DataRoot -Directory | Where-Object { -not $_.Name.StartsWith("_") }) {
+        $existingInfo = Read-Info (Join-Path $folder.FullName "info.txt")
+        $value = 0
+        if ([int]::TryParse([string]$existingInfo["排序"], [ref]$value)) {
+            $orders.Add($value)
+        }
+    }
+
+    if ($orders.Count -eq 0) { return 10 }
+    return (($orders | Measure-Object -Maximum).Maximum + 10)
+}
+
 # ------------------------------
 # Events
 # ------------------------------
@@ -689,9 +709,9 @@ $newButton.Add_Click({
 
             New-Item -ItemType Directory -Path $folder | Out-Null
             Write-Info $folder @{
-                "發布"="否"; "網址代號"=$slug; "排序"="10"; "案件名稱"=$name;
+                "發布"="否"; "網址代號"=$slug; "排序"=[string](Get-NextProjectOrder); "案件名稱"=$name;
                 "英文名稱"=""; "完成年度"=(Get-Date -Format "yyyy"); "類型"="住宅";
-                "座落位置"=""; "基地面積"=""; "建築面積"=""; "樓層"="";
+                "座落位置"=""; "基地面積"=""; "總樓地板面積"=""; "樓層"="";
                 "結構"=""; "案件狀態"="設計中"; "首頁顯示"="是"; "案件介紹"=""
             }
 
